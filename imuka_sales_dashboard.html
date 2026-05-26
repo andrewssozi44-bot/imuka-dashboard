@@ -663,7 +663,7 @@ document.getElementById('copy-btn').addEventListener('click', function() {
 window.addEventListener('DOMContentLoaded', function() {
   var saved = localStorage.getItem('imuka_su');
   if (saved) {
-    document.getElementById('script-url').value = saved;
+    document.getElementById('script-url').value = saved; 
     loadFromScript();
   } else {
     loadDemo();
