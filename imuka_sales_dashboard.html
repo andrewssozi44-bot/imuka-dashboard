@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Imuka — Sales & Marketing Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --green:#1D9E75;--green-light:#E1F5EE;--green-dark:#085041;
+  --blue:#185FA5;--blue-light:#E6F1FB;--purple:#534AB7;--purple-light:#EEEDFE;
+  --amber:#BA7517;--amber-light:#FAEEDA;--red:#A32D2D;--red-light:#FCEBEB;
+  --text:#1a1a1a;--muted:#6b7280;--hint:#9ca3af;
+  --bg:#f4f6f8;--surface:#fff;--border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.13);
+  --r:14px;--r2:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 18px}
+/* topbar */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:12px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:42px;height:42px;background:var(--green);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;flex-shrink:0}
+.brand-name{font-size:17px;font-weight:600}
+.brand-sub{font-size:12px;color:var(--muted)}
+.chip{font-size:11px;font-weight:600;background:var(--green-light);color:var(--green-dark);padding:4px 12px;border-radius:20px}
+/* buttons */
+button{cursor:pointer;font-family:'DM Sans',sans-serif;border:none;transition:all .15s}
+.btn{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;padding:9px 18px;border-radius:var(--r2)}
+.btn-g{background:var(--green);color:#fff}.btn-g:hover{opacity:.88}
+.btn-o{background:var(--surface);color:var(--muted);border:1px solid var(--border2)}.btn-o:hover{background:var(--green-light);color:var(--green-dark);border-color:var(--green)}
+.btn-sm{font-size:12px;padding:6px 14px}
+/* setup */
+.setup{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;margin-bottom:20px}
+.setup h2{font-size:15px;font-weight:600;margin-bottom:4px}
+.setup-sub{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.7}
+.steps{margin-bottom:16px}
+.step{display:flex;gap:14px;margin-bottom:16px}
+.snum{width:26px;height:26px;border-radius:50%;background:var(--green);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.sbody{flex:1}
+.stitle{font-size:13px;font-weight:600;margin-bottom:3px}
+.sdesc{font-size:12px;color:var(--muted);line-height:1.7}
+.code{background:#1e1e2e;color:#cdd6f4;border-radius:var(--r2);padding:14px 16px;font-family:'DM Mono',monospace;font-size:11px;line-height:1.8;margin:8px 0;white-space:pre;overflow-x:auto;position:relative}
+.copy-code{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.12);color:#cdd6f4;border:1px solid rgba(255,255,255,.2);border-radius:6px;padding:3px 10px;font-size:10px;cursor:pointer}
+.field{margin-bottom:10px}
+.field label{font-size:11px;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
+.field input{width:100%;padding:10px 14px;border:1.5px solid var(--border2);border-radius:var(--r2);font-size:13px;font-family:'DM Mono',monospace;color:var(--text);background:var(--bg);transition:border .15s;outline:none}
+.field input:focus{border-color:var(--green);background:#fff}
+.hint{font-size:11px;color:var(--hint);margin-top:3px}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;align-items:center}
+.note{background:var(--amber-light);border:1px solid #FAC775;border-radius:var(--r2);padding:10px 14px;font-size:12px;color:#633806;margin-top:12px;line-height:1.7}
+/* status */
+.status{border-radius:var(--r);padding:14px 18px;font-size:13px;display:flex;align-items:flex-start;gap:10px;margin-bottom:18px;display:none}
+.sl{background:var(--green-light);border:1px solid #9FE1CB;color:var(--green-dark)}
+.se{background:var(--red-light);border:1px solid #f09595;color:var(--red)}
+.ss{background:var(--green-light);border:1px solid #9FE1CB;color:var(--green-dark)}
+.sw{background:var(--amber-light);border:1px solid #FAC775;color:#633806}
+.status-body{flex:1}
+.status-body ul{margin:8px 0 0 16px;font-size:12px;line-height:2}
+.spin{width:17px;height:17px;border:2.5px solid rgba(0,0,0,.1);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;margin-top:1px}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* demo bar */
+.demo-bar{background:var(--purple-light);border:1px solid #AFA9EC;border-radius:var(--r);padding:10px 16px;font-size:12px;color:#3C3489;margin-bottom:18px;display:none}
+/* section */
+.sec{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--hint);margin:0 0 12px}
+/* kpi */
+.krow{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:11px;margin-bottom:22px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px}
+.klbl{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;margin-bottom:7px}
+.kdot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.kval{font-size:23px;font-weight:700;line-height:1}
+.kval.sm{font-size:17px;font-family:'DM Mono',monospace}
+.kdl{font-size:11px;margin-top:5px}
+.up{color:var(--green)}.dn{color:var(--red)}.warn{color:var(--amber)}
+/* targets */
+.tcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;margin-bottom:22px}
+.ti{margin-bottom:13px}.ti:last-child{margin-bottom:0}
+.tr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px}
+.tn{font-size:13px}.tp{font-size:13px;font-weight:700;font-family:'DM Mono',monospace}
+.pb{background:var(--bg);border-radius:4px;height:7px;overflow:hidden}
+.pf{height:100%;border-radius:4px;transition:width .7s ease}
+/* grid */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px}
+@media(max-width:680px){.two{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px}
+.ch{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.ct{font-size:13px;font-weight:600}
+/* leads */
+.lrow{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}.lrow:last-child{border-bottom:none}
+.av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.li{flex:1;min-width:0}
+.ln{font-size:12px;font-weight:600}
+.lb{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lr{text-align:right;flex-shrink:0}
+.lv{font-size:12px;font-weight:600;font-family:'DM Mono',monospace}
+.badge{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700;display:inline-block}
+.bhot{background:var(--red-light);color:var(--red)}
+.bwarm{background:var(--amber-light);color:var(--amber)}
+.bcold{background:var(--blue-light);color:var(--blue)}
+.bnew{background:var(--purple-light);color:var(--purple)}
+.bwon{background:var(--green-light);color:var(--green-dark)}
+.blost{background:var(--red-light);color:var(--red)}
+/* funnel */
+.frow{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.fl{font-size:11px;color:var(--muted);width:90px;text-align:right;flex-shrink:0}
+.fb{flex:1;background:var(--bg);border-radius:4px;height:20px;overflow:hidden}
+.ff{height:100%;border-radius:4px;display:flex;align-items:center;padding:0 9px}
+.ff span{font-size:11px;font-weight:700;color:#fff}
+.fp{font-size:11px;color:var(--muted);width:34px;text-align:right;font-family:'DM Mono',monospace;flex-shrink:0}
+/* channels */
+.crow{display:flex;align-items:center;gap:10px;margin-bottom:10px}.crow:last-child{margin-bottom:0}
+.ci{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.cinfo{flex:1}
+.cn{font-size:12px;font-weight:600}
+.cs{font-size:11px;color:var(--muted)}
+.cbar{background:var(--bg);border-radius:3px;height:4px;margin-top:3px;overflow:hidden}
+.cbf{height:100%;border-radius:3px}
+.ctag{font-size:11px;font-weight:700;flex-shrink:0}
+/* wins losses */
+.wlg{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.wlh{font-size:11px;font-weight:700;margin-bottom:9px}
+.wli{padding:6px 0;border-bottom:1px solid var(--border)}.wli:last-child{border-bottom:none}
+.wln{font-size:12px;font-weight:600}
+.wld{font-size:11px;color:var(--muted)}
+/* chart legend */
+.leg{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-bottom:10px}
+.leg span{display:flex;align-items:center;gap:5px}
+.ldot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+/* action strip */
+.astrip{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px;padding-top:13px;border-top:1px solid var(--border)}
+.abtn{font-size:11px;font-weight:500;padding:6px 12px;border-radius:var(--r2);border:1px solid var(--border2);background:transparent;color:var(--muted)}.abtn:hover{background:var(--green-light);color:var(--green-dark);border-color:var(--green)}
+/* alert */
+.alert{background:var(--amber-light);border:1px solid #FAC775;border-radius:var(--r);padding:11px 16px;display:none;align-items:center;gap:10px;margin-bottom:18px;font-size:13px;color:#633806}
+/* footer */
+.footer{display:flex;justify-content:space-between;font-size:11px;color:var(--hint);margin-top:22px;padding-top:14px;border-top:1px solid var(--border);flex-wrap:wrap;gap:8px}
+.footer a{color:var(--green);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">📈</div>
+      <div>
+        <div class="brand-name">Imuka Business Manager</div>
+        <div class="brand-sub">Sales &amp; Marketing Command Center</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span class="chip">Sales &amp; Marketing Officer</span>
+      <button class="btn btn-o btn-sm" id="btn-refresh">↻ Refresh</button>
+      <span style="font-size:11px;color:var(--hint);font-family:'DM Mono',monospace" id="ts">not loaded</span>
+    </div>
+  </div>
+
+  <!-- SETUP -->
+  <div class="setup" id="setup">
+    <h2>🔗 Connect your Google Sheet</h2>
+    <div class="setup-sub">
+      Paste your <strong>Apps Script Web App URL</strong> below. It should look like:<br>
+      <code style="font-size:11px;background:var(--bg);padding:2px 6px;border-radius:4px;font-family:'DM Mono',monospace">https://script.google.com/a/macros/imuka.co/s/XXXX/exec</code>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="snum">1</div>
+        <div class="sbody">
+          <div class="stitle">Open Apps Script in your Google Sheet</div>
+          <div class="sdesc">Click <strong>Extensions → Apps Script</strong> in your Google Sheet menu</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="snum">2</div>
+        <div class="sbody">
+          <div class="stitle">Replace all code with this, then Save (Ctrl+S)</div>
+          <div class="code" id="the-code">function doGet(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet();
+  var tabName = e.parameter.tab || 'metrics';
+  var ws = sheet.getSheetByName(tabName);
+  var output;
+  if (!ws) {
+    output = ContentService.createTextOutput(
+      JSON.stringify({error: 'Tab not found: ' + tabName})
+    );
+  } else {
+    var data = ws.getDataRange().getValues();
+    var headerRow = 0;
+    var known = ['month','name','channel','stage','outcome'];
+    for (var i = 0; i < Math.min(5, data.length); i++) {
+      if (known.indexOf(String(data[i][0]).toLowerCase().trim()) !== -1) {
+        headerRow = i; break;
+      }
+    }
+    var headers = data[headerRow].map(function(h){
+      return String(h).toLowerCase().trim();
+    });
+    var rows = data.slice(headerRow + 1).map(function(row){
+      var obj = {};
+      headers.forEach(function(h,i){ obj[h] = String(row[i]||'').trim(); });
+      return obj;
+    }).filter(function(r){
+      return Object.values(r).some(function(v){ return v !== ''; });
+    });
+    output = ContentService.createTextOutput(JSON.stringify(rows));
+  }
+  output.setMimeType(ContentService.MimeType.JSON);
+  return output;
+}<button class="copy-code" id="copy-btn">Copy</button></div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="snum">3</div>
+        <div class="sbody">
+          <div class="stitle">Deploy → Manage deployments → edit → New version → Deploy</div>
+          <div class="sdesc">Or if first time: Deploy → New deployment → Web app → Execute as Me → Anyone → Deploy</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="snum">4</div>
+        <div class="sbody">
+          <div class="stitle">Paste your Web App URL here</div>
+          <div class="field" style="margin-top:8px">
+            <input type="text" id="script-url" placeholder="https://script.google.com/a/macros/imuka.co/s/…/exec" />
+            <div class="hint" id="url-hint">Paste your Apps Script deployment URL above</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-g" id="btn-load">▶ Load my live data</button>
+      <button class="btn btn-o" id="btn-test">🔍 Test URL in browser</button>
+      <button class="btn btn-o" id="btn-demo">📋 Load demo data</button>
+      <button class="btn btn-o btn-sm" id="btn-hide">Hide setup</button>
+    </div>
+
+    <div class="note">
+      <strong>Your URL format is correct:</strong> URLs with <code>/a/macros/imuka.co/</code> are valid Google Workspace Apps Script URLs.
+    </div>
+  </div>
+
+  <!-- STATUS -->
+  <div class="status" id="status"></div>
+
+  <!-- DEMO BAR -->
+  <div class="demo-bar" id="demo-bar">
+    <strong>📋 Showing demo data.</strong> Paste your Apps Script URL above and click Load my live data to see your real numbers.
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dash" style="display:none">
+    <div class="alert" id="hot-alert">🔥 <span id="hot-text"></span></div>
+    <p class="sec">This month — performance snapshot</p>
+    <div class="krow" id="krow"></div>
+    <p class="sec">Monthly targets</p>
+    <div class="tcard" id="tcard"></div>
+    <p class="sec" style="margin-top:22px">Leads &amp; subscriptions — 6 month trend</p>
+    <div class="card" style="margin-bottom:22px">
+      <div class="leg">
+        <span><span class="ldot" style="background:#9FE1CB"></span>New leads</span>
+        <span><span class="ldot" style="background:transparent;border-top:2.5px dashed #185FA5;width:18px;height:0;display:inline-block;vertical-align:middle"></span>Subscriptions</span>
+      </div>
+      <div style="position:relative;height:175px"><canvas id="gchart"></canvas></div>
+    </div>
+    <div class="two">
+      <div class="card">
+        <div class="ch"><span class="ct">🧲 Active leads</span></div>
+        <div id="leads"></div>
+      </div>
+      <div class="card">
+        <div class="ch"><span class="ct">📊 Sales funnel</span></div>
+        <div id="funnel"></div>
+      </div>
+    </div>
+    <div class="two">
+      <div class="card">
+        <div class="ch"><span class="ct">📡 Channel performance</span></div>
+        <div id="channels"></div>
+      </div>
+      <div class="card">
+        <div class="ch"><span class="ct">🏆 Wins &amp; losses</span></div>
+        <div id="wl"></div>
+        <div class="astrip">
+          <button class="abtn">Handle price objection ↗</button>
+          <button class="abtn">Counter competitor ↗</button>
+          <button class="abtn">Nurture cold leads ↗</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>Imuka Business Manager · <a href="https://biz.imuka.co/" target="_blank">biz.imuka.co</a></span>
+    <span id="fts"></span>
+  </div>
+</div>
+
+<script>
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+var fmtUGX = function(n) {
+  var v = parseFloat(n) || 0;
+  if (v >= 1000000) return 'UGX ' + (v/1000000).toFixed(1) + 'M';
+  if (v >= 1000) return 'UGX ' + Math.round(v/1000) + 'K';
+  return 'UGX ' + Math.round(v).toLocaleString();
+};
+var pct = function(a, b) {
+  return b > 0 ? Math.round((parseFloat(a)||0) / (parseFloat(b)||1) * 100) : 0;
+};
+var avC = ['#E1F5EE:#085041','#EEEDFE:#3C3489','#FAEEDA:#633806','#E6F1FB:#0C447C','#FBEAF0:#72243E','#EAF3DE:#3B6D11'];
+var avSt = function(i) {
+  var p = avC[i % avC.length].split(':');
+  return 'background:' + p[0] + ';color:' + p[1];
+};
+var init = function(n) {
+  return (n||'').split(' ').map(function(w){ return w[0]||''; }).slice(0,2).join('').toUpperCase() || '?';
+};
+var tempBadge = function(t) {
+  var l = (t||'').toLowerCase();
+  if (l === 'hot')  return '<span class="badge bhot">Hot</span>';
+  if (l === 'warm') return '<span class="badge bwarm">Warm</span>';
+  if (l === 'new')  return '<span class="badge bnew">New</span>';
+  return '<span class="badge bcold">Cold</span>';
+};
+
+// ── STATUS ────────────────────────────────────────────────────────────────────
+var setStatus = function(type, msg, bullets) {
+  var el = document.getElementById('status');
+  el.className = 'status s' + type;
+  el.style.display = 'flex';
+  var h = type === 'l' ? '<div class="spin"></div>' : '';
+  h += '<div class="status-body"><div>' + msg + '</div>';
+  if (bullets && bullets.length) {
+    h += '<ul>';
+    for (var i = 0; i < bullets.length; i++) h += '<li>' + bullets[i] + '</li>';
+    h += '</ul>';
+  }
+  h += '</div>';
+  el.innerHTML = h;
+  if (type === 's') setTimeout(function(){ el.style.display = 'none'; }, 4000);
+};
+var clearStatus = function() {
+  document.getElementById('status').style.display = 'none';
+};
+
+// ── RENDER METRICS ────────────────────────────────────────────────────────────
+var renderMetrics = function(rows) {
+  if (!rows.length) return;
+  var r = rows[rows.length - 1];
+  var p = rows.length > 1 ? rows[rows.length - 2] : null;
+  var diff = function(k) {
+    if (!p) return '';
+    var d = (parseFloat(r[k])||0) - (parseFloat(p[k])||0);
+    if (d > 0) return '<div class="kdl up">&#8593; +' + Math.abs(d) + ' vs last month</div>';
+    if (d < 0) return '<div class="kdl dn">&#8595; ' + Math.abs(d) + ' vs last month</div>';
+    return '';
+  };
+  var demos = parseFloat(r.demos_booked) || 0;
+  var subs  = parseFloat(r.subscriptions_won) || 0;
+  var cvr   = demos > 0 ? Math.round(subs/demos*100) + '%' : '-';
+  var items = [
+    {l:'New leads',       v:r.new_leads||0,              dot:'#1D9E75', dl:diff('new_leads')},
+    {l:'Demos booked',    v:r.demos_booked||0,            dot:'#185FA5', dl:diff('demos_booked')},
+    {l:'Subscriptions',   v:r.subscriptions_won||0,       dot:'#534AB7', dl:diff('subscriptions_won')},
+    {l:'Demo-to-paid CVR',v:cvr,                          dot:'#1D9E75', dl:''},
+    {l:'MRR added',       v:fmtUGX(r.mrr_added||0),      dot:'#BA7517', sm:true, dl:''},
+    {l:'Avg sales cycle', v:(r.avg_sales_cycle_days||0)+' days', dot:'#D85A30', dl:''}
+  ];
+  var html = '';
+  for (var i = 0; i < items.length; i++) {
+    var m = items[i];
+    html += '<div class="kpi">' +
+      '<div class="klbl"><span class="kdot" style="background:' + m.dot + '"></span>' + m.l + '</div>' +
+      '<div class="kval' + (m.sm ? ' sm' : '') + '">' + m.v + '</div>' +
+      m.dl + '</div>';
+  }
+  document.getElementById('krow').innerHTML = html;
+
+  var tMrr = parseFloat(r.target_mrr) || 8000000;
+  var tSub = parseFloat(r.target_subs) || 18;
+  var tDem = parseFloat(r.target_demos) || 30;
+  var targets = [
+    {n:'MRR \u2014 ' + fmtUGX(r.mrr_added||0) + ' of ' + fmtUGX(tMrr), v:pct(r.mrr_added,tMrr), c:'#1D9E75'},
+    {n:'Subscriptions \u2014 ' + (r.subscriptions_won||0) + ' of ' + tSub, v:pct(r.subscriptions_won,tSub), c:'#185FA5'},
+    {n:'Demos \u2014 ' + (r.demos_booked||0) + ' of ' + tDem, v:pct(r.demos_booked,tDem), c:'#7F77DD'}
+  ];
+  var th = '';
+  for (var j = 0; j < targets.length; j++) {
+    var t = targets[j];
+    var w = Math.min(t.v, 100);
+    th += '<div class="ti"><div class="tr"><span class="tn">' + t.n + '</span><span class="tp" style="color:' + t.c + '">' + t.v + '%</span></div>' +
+          '<div class="pb"><div class="pf" style="width:' + w + '%;background:' + t.c + '"></div></div></div>';
+  }
+  document.getElementById('tcard').innerHTML = th;
+};
+
+// ── RENDER CHART ──────────────────────────────────────────────────────────────
+var gc = null;
+var renderChart = function(rows) {
+  var d = rows.slice(-6);
+  if (gc) gc.destroy();
+  var labels = d.map(function(r){ return r.month || ''; });
+  var leads  = d.map(function(r){ return parseFloat(r.new_leads) || 0; });
+  var subs   = d.map(function(r){ return parseFloat(r.subscriptions_won) || 0; });
+  gc = new Chart(document.getElementById('gchart'), {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        {type:'bar',  data:leads, backgroundColor:'#9FE1CB', borderRadius:3, order:2},
+        {type:'line', data:subs,  borderColor:'#185FA5', backgroundColor:'transparent', borderWidth:2, pointRadius:4, pointBackgroundColor:'#185FA5', tension:.4, borderDash:[5,3], order:1}
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {legend: {display: false}},
+      scales: {
+        x: {ticks:{font:{size:11}}, grid:{display:false}},
+        y: {ticks:{font:{size:11}}, grid:{color:'rgba(0,0,0,0.05)'}, beginAtZero:true}
+      }
+    }
+  });
+};
+
+// ── RENDER LEADS ──────────────────────────────────────────────────────────────
+var renderLeads = function(rows) {
+  var hot = rows.filter(function(r){ return (r.temperature||'').toLowerCase() === 'hot'; });
+  if (hot.length) {
+    var a = document.getElementById('hot-alert');
+    a.style.display = 'flex';
+    document.getElementById('hot-text').textContent = hot.length + ' hot lead' + (hot.length > 1 ? 's' : '') + ' need follow-up now.';
+  }
+  var ord = {hot:0, warm:1, 'new':2, cold:3};
+  var sorted = rows.slice().sort(function(a, b){
+    return (ord[(a.temperature||'').toLowerCase()] || 4) - (ord[(b.temperature||'').toLowerCase()] || 4);
+  }).slice(0, 6);
+  var h = '';
+  for (var i = 0; i < sorted.length; i++) {
+    var r = sorted[i];
+    h += '<div class="lrow">' +
+      '<div class="av" style="' + avSt(i) + '">' + init(r.name) + '</div>' +
+      '<div class="li"><div class="ln">' + (r.name||'-') + '</div><div class="lb">' + (r.business||'') + (r.location ? ' \u00b7 ' + r.location : '') + '</div></div>' +
+      '<div class="lr"><div class="lv">' + (r.value_ugx ? fmtUGX(r.value_ugx) + '/yr' : '-') + '</div>' + tempBadge(r.temperature) + '</div>' +
+      '</div>';
+  }
+  document.getElementById('leads').innerHTML = h;
+};
+
+// ── RENDER FUNNEL ─────────────────────────────────────────────────────────────
+var renderPipeline = function(rows) {
+  var top = parseFloat(rows[0] && rows[0].count) || 1;
+  var cols = ['#1D9E75','#5DCAA5','#378ADD','#7F77DD','#BA7517','#D85A30'];
+  var h = '';
+  for (var i = 0; i < rows.length; i++) {
+    var r = rows[i];
+    var w = Math.round(parseFloat(r.count||0) / top * 100);
+    h += '<div class="frow">' +
+      '<span class="fl">' + (r.stage||'-') + '</span>' +
+      '<div class="fb"><div class="ff" style="width:' + w + '%;background:' + (cols[i]||'#888') + '"><span>' + (r.count||0) + '</span></div></div>' +
+      '<span class="fp">' + w + '%</span></div>';
+  }
+  document.getElementById('funnel').innerHTML = h;
+};
+
+// ── RENDER CHANNELS ───────────────────────────────────────────────────────────
+var renderChannels = function(rows) {
+  var maxC = 1;
+  for (var i = 0; i < rows.length; i++) {
+    var v = parseFloat(rows[i].conversion_rate||0);
+    if (v > maxC) maxC = v;
+  }
+  var ics  = ['💬','🤝','📱','📍','📧','📺'];
+  var bgs  = ['background:#E1F5EE;color:#0F6E56','background:#EEEDFE;color:#534AB7','background:#E6F1FB;color:#185FA5','background:#FAEEDA;color:#854F0B'];
+  var best = 0;
+  for (var j = 1; j < rows.length; j++) {
+    if (parseFloat(rows[j].conversion_rate||0) > parseFloat(rows[best].conversion_rate||0)) best = j;
+  }
+  var h = '';
+  for (var k = 0; k < rows.length; k++) {
+    var r = rows[k];
+    var cvr = parseFloat(r.conversion_rate||0);
+    var bw  = Math.round(cvr / maxC * 100);
+    var tag = k === best
+      ? '<span class="ctag" style="color:#534AB7">Best CVR</span>'
+      : '<span class="ctag" style="color:var(--hint)">' + cvr + '%</span>';
+    h += '<div class="crow">' +
+      '<div class="ci" style="' + (bgs[k%bgs.length]) + '">' + ics[k%ics.length] + '</div>' +
+      '<div class="cinfo"><div class="cn">' + (r.channel||'-') + '</div>' +
+      '<div class="cs">' + (r.leads||0) + ' leads \u00b7 ' + cvr + '% CVR</div>' +
+      '<div class="cbar"><div class="cbf" style="width:' + bw + '%;background:#1D9E75"></div></div></div>' +
+      tag + '</div>';
+  }
+  document.getElementById('channels').innerHTML = h;
+};
+
+// ── RENDER WINS/LOSSES ────────────────────────────────────────────────────────
+var renderWL = function(rows) {
+  var won  = rows.filter(function(r){ return (r.outcome||'').toLowerCase() === 'won'; }).slice(0,3);
+  var lost = rows.filter(function(r){ return (r.outcome||'').toLowerCase() === 'lost'; }).slice(0,3);
+  var wh = won.length ? won.map(function(r){
+    return '<div class="wli"><div class="wln">' + (r.name||r.business||'-') + '</div><div class="wld">' + (r.plan||'') + (r.value_ugx ? ' \u00b7 ' + fmtUGX(r.value_ugx) + '/yr' : '') + '</div></div>';
+  }).join('') : '<div style="font-size:12px;color:var(--hint)">No wins yet</div>';
+  var lh = lost.length ? lost.map(function(r){
+    return '<div class="wli"><div class="wln">' + (r.name||r.business||'-') + '</div><div class="wld" style="color:var(--red)">' + (r.reason||'No reason given') + '</div></div>';
+  }).join('') : '<div style="font-size:12px;color:var(--hint)">None recorded</div>';
+  document.getElementById('wl').innerHTML =
+    '<div class="wlg">' +
+    '<div><div class="wlh" style="color:#085041">&#x1F3C6; Won</div>' + wh + '</div>' +
+    '<div><div class="wlh" style="color:var(--red)">&#x2715; Lost</div>' + lh + '</div>' +
+    '</div>';
+};
+
+// ── SHOW DASHBOARD ────────────────────────────────────────────────────────────
+var showDash = function(isDemo) {
+  document.getElementById('dash').style.display = 'block';
+  document.getElementById('demo-bar').style.display = isDemo ? 'block' : 'none';
+  var now = new Date();
+  document.getElementById('ts').textContent  = isDemo ? 'Demo data' : 'Updated ' + now.toLocaleTimeString();
+  document.getElementById('fts').textContent = now.toLocaleString('en-UG', {dateStyle:'medium', timeStyle:'short'});
+};
+
+// ── LOAD FROM APPS SCRIPT ─────────────────────────────────────────────────────
+var loadFromScript = function() {
+  var inp  = document.getElementById('script-url');
+  var base = inp.value.trim() || localStorage.getItem('imuka_su') || '';
+  if (!base) {
+    setStatus('e', 'Paste your Apps Script URL first.');
+    return;
+  }
+  if (base.indexOf('script.google.com') === -1 || base.indexOf('/exec') === -1) {
+    setStatus('e', 'URL must contain script.google.com and end with /exec');
+    return;
+  }
+  localStorage.setItem('imuka_su', base);
+  setStatus('l', 'Connecting to your Google Sheet\u2026 please wait.');
+
+  var tabs = ['metrics','leads','channels','pipeline','wins_losses'];
+  var promises = tabs.map(function(tab) {
+    var url = base + '?tab=' + tab;
+    return fetch(url, {
+      redirect: 'follow',
+      method: 'GET',
+      headers: {'Content-Type': 'application/json'}
+    })
+    .then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.text();
+    })
+    .then(function(text) {
+      try { return JSON.parse(text); }
+      catch(e) { throw new Error('Bad JSON: ' + text.substring(0,100)); }
+    })
+    .catch(function(e) { return {_err: e.message}; });
+  });
+
+  Promise.all(promises).then(function(results) {
+    var metrics  = results[0];
+    var leads    = results[1];
+    var channels = results[2];
+    var pipeline = results[3];
+    var wins     = results[4];
+    var failed   = [];
+    tabs.forEach(function(t, i){ if (results[i] && results[i]._err) failed.push(t); });
+
+    if (metrics  && !metrics._err  && metrics.length)  { renderMetrics(metrics);  renderChart(metrics); }
+    if (leads    && !leads._err    && leads.length)    renderLeads(leads);
+    if (pipeline && !pipeline._err && pipeline.length) renderPipeline(pipeline);
+    if (channels && !channels._err && channels.length) renderChannels(channels);
+    if (wins     && !wins._err     && wins.length)     renderWL(wins);
+
+    showDash(false);
+
+    if (failed.length) {
+      var errMsgs = [];
+      tabs.forEach(function(t,i){
+        if (results[i] && results[i]._err) errMsgs.push(t + ': ' + results[i]._err);
+      });
+      setStatus('w', 'Some tabs had issues (' + failed.join(', ') + '). See details below:', errMsgs.concat([
+        'Most common fix: go to Apps Script -> Deploy -> Manage deployments -> edit -> set New version -> Deploy',
+        'Make sure "Who has access" is set to Anyone (not Anyone within imuka.co)'
+      ]));
+    } else {
+      setStatus('s', '\u2713 All data loaded successfully from your Google Sheet!');
+    }
+  }).catch(function(e) {
+    setStatus('e', 'Connection failed: ' + e.message, [
+      'Make sure deployment is set to "Anyone can access"',
+      'Try: Deploy -> Manage deployments -> edit -> new version -> Deploy'
+    ]);
+  });
+};
+
+// ── DEMO DATA ─────────────────────────────────────────────────────────────────
+var loadDemo = function() {
+  var m = [
+    {month:'Dec 2025',new_leads:21,demos_booked:10,subscriptions_won:4, mrr_added:1920000,avg_sales_cycle_days:12,target_mrr:8000000,target_subs:18,target_demos:30},
+    {month:'Jan 2026',new_leads:25,demos_booked:12,subscriptions_won:5, mrr_added:2400000,avg_sales_cycle_days:11,target_mrr:8000000,target_subs:18,target_demos:30},
+    {month:'Feb 2026',new_leads:29,demos_booked:14,subscriptions_won:6, mrr_added:2880000,avg_sales_cycle_days:11,target_mrr:8000000,target_subs:18,target_demos:30},
+    {month:'Mar 2026',new_leads:33,demos_booked:16,subscriptions_won:8, mrr_added:3840000,avg_sales_cycle_days:10,target_mrr:8000000,target_subs:18,target_demos:30},
+    {month:'Apr 2026',new_leads:33,demos_booked:16,subscriptions_won:8, mrr_added:3840000,avg_sales_cycle_days:10,target_mrr:8000000,target_subs:18,target_demos:30},
+    {month:'May 2026',new_leads:47,demos_booked:22,subscriptions_won:11,mrr_added:5500000,avg_sales_cycle_days:8, target_mrr:8000000,target_subs:18,target_demos:30}
+  ];
+  renderMetrics(m); renderChart(m);
+  renderLeads([
+    {name:'Kavuma Martin', business:'Entebbe Hardware', location:'Entebbe', value_ugx:480000, temperature:'Hot'},
+    {name:'Apio Norah',    business:'Gulu Salon',       location:'Gulu',    value_ugx:360000, temperature:'Hot'},
+    {name:'Bwire Kenneth', business:'Mbale Agro',       location:'Mbale',   value_ugx:600000, temperature:'Warm'},
+    {name:'Nakato Sarah',  business:'Kampala Boutique', location:'Kampala', value_ugx:480000, temperature:'Warm'},
+    {name:'Odong David',   business:'Lira Pharmacy',    location:'Lira',    value_ugx:720000, temperature:'Cold'}
+  ]);
+  renderPipeline([
+    {stage:'Leads',        count:47},
+    {stage:'Contacted',    count:38},
+    {stage:'Demo done',    count:22},
+    {stage:'Proposal sent',count:16},
+    {stage:'Subscribed',   count:11}
+  ]);
+  renderChannels([
+    {channel:'WhatsApp outreach',leads:18,conversion_rate:44},
+    {channel:'Referrals',        leads:14,conversion_rate:57},
+    {channel:'Social media ads', leads:9, conversion_rate:22},
+    {channel:'Field visits',     leads:6, conversion_rate:33}
+  ]);
+  renderWL([
+    {name:'Kampala Mart',     plan:'Basic',value_ugx:480000,outcome:'Won'},
+    {name:'Mbarara Pharmacy', plan:'Pro',  value_ugx:720000,outcome:'Won'},
+    {name:'Jinja Butchery',   plan:'Basic',value_ugx:480000,outcome:'Won'},
+    {name:'Soroti Traders',   outcome:'Lost',reason:'Price too high'},
+    {name:'Masaka Salon',     outcome:'Lost',reason:'Chose competitor'},
+    {name:'Tororo Agro',      outcome:'Lost',reason:'Not ready yet'}
+  ]);
+  showDash(true);
+  clearStatus();
+};
+
+// ── BUTTON WIRING ─────────────────────────────────────────────────────────────
+document.getElementById('btn-load').addEventListener('click', loadFromScript);
+document.getElementById('btn-demo').addEventListener('click', loadDemo);
+document.getElementById('btn-refresh').addEventListener('click', loadFromScript);
+document.getElementById('btn-hide').addEventListener('click', function() {
+  var s = document.getElementById('setup');
+  var hidden = s.style.display === 'none';
+  s.style.display = hidden ? 'block' : 'none';
+  document.getElementById('btn-hide').textContent = hidden ? 'Hide setup' : 'Show setup';
+  document.getElementById('btn-refresh').style.display = hidden ? 'none' : 'inline-flex';
+});
+document.getElementById('btn-test').addEventListener('click', function() {
+  var base = document.getElementById('script-url').value.trim() || localStorage.getItem('imuka_su') || '';
+  if (!base) { alert('Paste your Apps Script URL first.'); return; }
+  window.open(base + '?tab=metrics', '_blank');
+});
+document.getElementById('copy-btn').addEventListener('click', function() {
+  var text = document.getElementById('the-code').textContent;
+  navigator.clipboard.writeText(text).then(function() {
+    document.getElementById('copy-btn').textContent = 'Copied!';
+    setTimeout(function(){ document.getElementById('copy-btn').textContent = 'Copy'; }, 2000);
+  });
+});
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', function() {
+  var saved = localStorage.getItem('imuka_su');
+  if (saved) {
+    document.getElementById('script-url').value = saved;
+    loadFromScript();
+  } else {
+    loadDemo();
+  }
+});
+</script>
+</body>
+</html>
